@@ -1,6 +1,11 @@
-def readIn():
-    book = open('test.txt','r')
+def readIn(filename):
+    try:
+        book = open(filename,'r')
+        # book = open('test.txt','r')
+    except:
+        print('                                   no such file')
     line = []
+    # 导入图书
     for item in book:
         item = item.lstrip() # 去除左边的空格
         if item != '':
@@ -8,52 +13,124 @@ def readIn():
             item = item.rstrip() # 去除右边的空格,因为每个人打字习惯不同，有的在最后加空格，有的不
             line.append(item)
     book.close()
-    print('book done')
+    # print('book done')
+    # 处理连字符
+    words = []
+    while 1:
+        check = 0
+        for index,value in enumerate(line):
+            if value.find('-',len(value)-1) == len(value)-1:
+                temp = line.pop(index)
+                temp += line.pop(index)
+                line.insert(index,temp)
+                check = 1
+        if check == 0:
+            break
     # 以空格切片
     words_and_punctuation = []
     for item in line:
         words_and_punctuation.extend(item.split(' ', -1 ))
-    print('words_and_punctuation done')
+    while line:
+        line.pop(0)
+    # print('words_and_punctuation done')
     # 得到字母表
-    alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+    alphabet = ['a','b','c','dict','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     temp = []
     for item in alphabet:
         temp.append(item.upper())
     alphabet.extend(temp)
-    # 去除标点
-    words = []
+    # print(alphabet)
+    # 去除标点和除 a 和 A 的单字符
     for item in words_and_punctuation:
         if item.isalpha():
-            print(item)
-            words.append(item)
+            if len(item) > 1 or item == 'a' or item == 'A':
+                words.append(item)
         else:
             item = cut_punctuation(item,alphabet)
-            if item != []:
-                words.append(item)
-    print('words done')
+            if item.isalpha():
+                if len(item) > 1 or item == 'a' or item == 'A':
+                    words.append(item)
+    # print('words done')
+    while words_and_punctuation:
+        words_and_punctuation.pop(0)
+    while alphabet:
+        alphabet.pop(0)
     return words
-    
+
 # 去掉标点 将 alphabet 导入则不需要每次都生成了，减少时间复杂度
 def cut_punctuation(str,alphabet):
     str_to_list = list(str)
     list_to_str = ''
-    check_whole_not_alphabet = 0
     while 1: # 但使用 ... 会删除不干净，故循环
         for item in str_to_list:
             if item not in alphabet:
                 str_to_list.remove(item)
-        list_to_str += "".join(str_to_list)
-        if list_to_str.isalpha():
-            check_whole_not_alphabet = 1
+        list_to_str = "".join(str_to_list)
+        if list_to_str.isalpha() or list_to_str == '':
             break
-    if check_whole_not_alphabet == 1:
-        return list_to_str
-    else:
-        return []
+    return list_to_str
 
-words = readIn()
-for i in words:
-    print(i)
+def histogram(list):
+    dict = {}
+    for item in list:
+        if item not in dict:
+            dict[item] = 1
+        else:
+            dict[item] += 1
+    list = sorted(dict.items(),key=lambda d: d[1],reverse=True)
+    dict.clear()
+    alphabet_list = []
+    for item in list:
+        alphabet_list.append(item[0])
+        dict[item[0]] = item[1]
+    return dict ,alphabet_list
+
+class WordCount:
+    def __init__(self,words):
+        self.words = words
+        self.total = len(self.words)
+        self.histogram,temp = histogram(self.words)
+        self.top = temp[0:20]
+        self.low = temp[len(temp)-20:len(temp)]
+    # 去掉某些词
+    def getWords_except(self,list):
+        words_except = self.words.copt()
+        while 1:
+            check = 0
+            for item in words_except:
+                if item in list:
+                    words_except.remove(item)
+                    check = 1
+            if check == 0:
+                break
+        return words_except
+    def showTotal(self):
+        print('            全书共计',self.total,'个单词')
+    def showHistogram(self):
+        count = 0
+        print('              全书单词出现的直方分布图')
+        print('   ','key','value','key','value','key','value',sep = '          ')
+        print('             ',end = '')
+        for key,value in self.histogram.items():
+            print( "%-16.20s %4.3d" % (key,value),end = '   ',sep = '   ')
+            count += 1
+            if count == 3:
+                count = 0
+                print()
+                print('             ',end = '')
+        print('')
+    def showTop_low(self):
+        print('       使用频率最高的 20 个单词',self.top)
+        print('       使用频率低高的 20 个单词',self.low)
+if __name__ == '__main__':
+    main()
+    # print('请输入要处理的文件名：',end = ' ')
+    # filename = input()
+    # w = WordCount(readIn(filename))
+    # w.showTotal()
+    # w.showTop_low()
+    # w.showHistogram()
+
 
 
 
@@ -62,8 +139,4 @@ for i in words:
 
 
 
-class WordCount:
-    def __init__(self,line = ''):
-        self.line = line
-    # def 
-
+# key=lambda d: d[0]
